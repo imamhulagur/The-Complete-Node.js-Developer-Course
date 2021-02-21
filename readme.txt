@@ -167,3 +167,188 @@ Node JS module system
     >nodemon app.js
         auto compiling whenever something changed, we dont have to restart constantly whenever swe made changes.
     terminate ctrl+c
+
+File System and Command Line Args (Notes App)
+*********************************************
+    Getting Input from Users
+    ------------------------
+    process.argv->return array with
+        1st path to node js exe on your machine
+        2nd path of the file where it reside in system.
+        3rd value which we have provided
+    Argument Parsing with Yargs: Part I
+    ---------------------------------
+    Since node does not provide argument parsing.
+        >node app.js add --title"This is the title"
+        console.log(process.argv)
+        [
+            '..\\node.exe',
+            '..\\file location',
+            'add',
+            'title="This is the title'
+        ]
+    To parse in useful way, since most of the node js application use command line arguments in some way. There are tons of npm packages out there to parse the agrv in useful manner, Yargs is one of them.
+    >npm install yargs
+        console.log(yargs.argv);
+    >node app.js add --title="This is title"
+        yargs ll provide more organized useful key values pairs
+        { 
+            _: [ 'add' ],
+            '$0': 'app.js'
+            title: 'This is title'       
+        }
+
+    yargs.command({
+        command: 'some sommand',
+        description: 'desc about it',
+        handler: handle function
+    })
+
+    >node app.js -help->then it will suggest you with all the commands.
+        Commands:
+        app.js add     Add a new note
+        app.js remove  Remove a node
+        app.js list    Listing note
+        app.js read    Read note
+
+        Options:
+        --help     Show help                                                 [boolean]       
+        --version  Show version number
+        builder->help us to create property which can be used inside handler.
+        demandOption: true->will make the argument compulsory
+        type: 'string'->make sure the content which you need has provided
+    
+    18. Storing Data with JSON
+    --------------------------
+        const book = {
+            title: 'Ego is the Enemy',
+            author: 'Ryan Holiday'
+        }
+
+        //since fs node core module only know to work with string data we need to convert js JSON object to string object using stringify
+        const bookStringify = JSON.stringify(book);
+        console.log(book);
+        console.log(bookStringify);
+        //we cant be able to access the data using properties in string data
+        console.log(bookStringify.author);
+
+        //conversely we can convert string object to  js JSON object using JSON.parse()
+        const bookJSON = JSON.parse(bookStringify);
+        //we can access data using property
+        console.log(bookJSON.author)
+
+        { title: 'Ego is the Enemy', author: 'Ryan Holiday' }
+        {"title":"Ego is the Enemy","author":"Ryan Holiday"}
+        undefined
+        Ryan Holiday
+
+        observation -> all key resides inside quotes, all the single quotes converted into double quotes.
+
+        //js object
+        const book = {
+            title: 'Ego is the Enemy',
+            author: 'Ryan Holiday'
+        }
+
+        creating JSON sting object
+        const bookJSON = JSON.stringify(book);
+        fs.writeFileSync('1-json.json', bookJSON);
+    
+    data buffer because we wont get data as we see them instead we are gng get buffer data
+    <Buffer 7b 22 74 69 74 6c 65 22 3a 22 45 67 6f 20 69 73 20 74 68 65 20 45 6e 65 6d 79 22 2c 22 61 75 74 68 6f 72 22 3a 22 52 79 61 6e 20 48 6f 6c 69 64 61 79 ... 2 more bytes>
+    
+    to get string back we need to use toSting()
+    const dataBuffer = fs.readFileSync('1-json.json');
+    console.log(dataBuffer);
+    console.log(dataBuffer.toString());
+    o/p >node 1-json.json
+        <Buffer 7b 22 74 69 74 6c 65 22 3a 22 45 67 6f 20 69 73 20 74 68 65 20 45 6e 65 6d 79 22 2c 22 61 75 74 68 6f 72 22 3a 22 52 79 61 6e 20 48 6f 6c 69 64 61 79 ... 2 more bytes>
+        {"title":"Ego is the Enemy","author":"Ryan Holiday"}
+    
+    Note: we cant be able to access the properties in JSON string object, we need to convert it to JS object by parsing and then need to access.
+
+    Read JSON file data and update back to same file
+    ------------------------------------------------
+    const fs= require('fs');
+    const dataBuffer = fs.readFileSync('1-json.json');
+    //convert buffer into JSON string
+    const dataJSON = dataBuffer.toString();
+    console.log('Old data' +dataJSON);
+
+    //convert JSON string to JS object to override and alter property names. 
+    const user = JSON.parse(dataJSON);
+    user.name = 'imamChanged';
+    user.age = 25;
+
+    //override the original data back to file.
+    const userJSON = JSON.stringify(user);
+    fs.writeFileSync('1-json.json', userJSON);
+    console.log('New data' +userJSON);
+        >node 1-json.js
+        Old data{"name":"imam","planet":"earth","age":24}
+        New data{"name":"imamChanged","planet":"earth","age":25}
+
+    *note: JSON is just a string representation of Javascript Object.
+
+    19. Adding a Note
+    -----------------
+    how to export multiple modules - module.exports ={}
+        module.exports = {
+            getNotes: getNotes,
+            addNotes: addNotes
+        }
+    import as utility
+        const notesUtility = require('./notes');
+
+    20. Removing a Notes
+    21. ES6 Aside: Arrow Functions
+        // const square = function(x) {
+        //     return x*x;
+        // }
+        // const square = (x)=>{
+        //     return x*x;
+        // }
+        // const square = x=> x*x;
+        // console.log(square(2));
+
+        const event = {
+            name: 'Birth Party',
+            guestList: ['imam', 'imam1', 'imam2'],
+            // printGuestList: function() {
+            //     console.log('Guest list for '+ this.name);
+            // }
+            
+            // printGuestList: ()=> {
+            //     console.log('Guest list for '+ this.name);
+            // }
+            
+            //ES6 method definition syntax
+            printGuestList() {
+                console.log('Guest list for '+ this.name);
+                //standard function have there own this
+                // this.guestList.forEach(function(guest) {
+                //     console.log(guest+' is attending '+ this.name)
+                // })
+                //arrow functions don't bind the value this, they will bind to parent this
+                this.guestList.forEach((guest)=> {
+                    console.log(guest+' is attending '+ this.name)
+                })
+            }
+        }
+        event.printGuestList();
+    Note: arrow functions are bad for methods, so use ES6 shorthand syntax
+    
+    22. Refactoring to Use Arrow Functions
+        method->defining a function directly on an object, use ES6 shorthand syntax i.e remove ':function'
+    if the function is not dependent on any object ro designed to work on any specific objects->go for arrow functions
+
+    23. Listing Notes
+    24. Reading a Note
+        implement functionality notes.js
+        export.modules
+        call from app.js
+    dif between filter() and find()
+    if there are 1000 elements in a array, if the match(duplicate) found at 90th elements
+        filter()->will not stop there it will iterate other elements too
+    But
+        find()->exit as soon as it first match found.
