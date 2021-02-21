@@ -352,3 +352,16 @@ File System and Command Line Args (Notes App)
         filter()->will not stop there it will iterate other elements too
     But
         find()->exit as soon as it first match found.
+
+Debugging Node.js (Notes Apps)
+******************************
+    1.console.log()->only goos to for one or two objects visualization
+    2.node debugger->node built in debugging tools integrated with chrome.
+    just put 'debugger'-to pause the execution->and then analyse in dev tools
+    to make it work we need to add 'inspect' before remaining command.
+        >node --inspect app.js add --title="t" --body="b"
+        got error?
+        >node --inspect-brk app.js add --title="a" --body="b"
+        try adding different port -> --port=9230
+    after this go to chrome->chrome://inspect/
+        chrome uses built in V8 debugger tool
