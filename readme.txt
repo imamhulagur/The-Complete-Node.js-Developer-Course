@@ -355,7 +355,7 @@ File System and Command Line Args (Notes App)
 
 Debugging Node.js (Notes Apps)
 ******************************
-    1.console.log()->only goos to for one or two objects visualization
+    1.console.log()->only good to for one or two objects visualization
     2.node debugger->node built in debugging tools integrated with chrome.
     just put 'debugger'-to pause the execution->and then analyse in dev tools
     to make it work we need to add 'inspect' before remaining command.
@@ -365,3 +365,99 @@ Debugging Node.js (Notes Apps)
         try adding different port -> --port=9230
     after this go to chrome->chrome://inspect/
         chrome uses built in V8 debugger tool
+
+Section 6: Asynchronous Node.js(Weather App)
+********************************************
+    Call Stack, Callback Queue, and Event Loop
+    ------------------------------------------
+    Event loop needs to be wait until all the functions inside execute context executed i.e till its gets empty
+    End of main program finished, once its popped up the evnt loops execution start{ but in other languages such as java end if main is end of execution} thats not in case of asynchronous languages!
+    Another words non of the asynchronous task run before the termination of main function.
+
+    Making HTTP Requests
+    --------------------
+    www.darksky.net->may be in future it will acquired by apple.
+    www.weatherstack.com - its free{1000 request per month}
+    request to that api using access_key&key=value
+        http://api.weatherstack.com/current?access_key=500202960a4016659e6ac115053018b4&query=37.8267,-122.4233
+
+    initialize npm
+    >npm init -y{yes to all to provide default values}
+    install postman-request
+    >npm i postman-request
+
+    32. Customizing HTTP Requests
+    -----------------------------
+    go to postman-request npm package->click-option all available option
+    provide json as 2nd option
+        {
+            url: url,
+            json: true            
+        }
+    now response.body is already an JSON parsed object so no need to use JSON.parsed.
+        console.log(response.body.current);
+
+    To view an raw json as a formatted JSON in browser->mak use of 'JSON formatter' chrome extension->after installation just refresh it
+    another alternatives
+       office work-> postman, download json extension for notepad++.
+    console.log(response.body.current.weather_descriptions[0]+'. It is currently '+ response.body.current.temperature+' degrees out. It is feels like '+response.body.current.feelslike+' degrees out.');
+
+    to view temperature in fahrenheit->document->units->add another k:v pai to url->&units=f
+
+
+    33. An HTTP Request Challenge - mapbox.com->create account
+    -----------------------------
+    Geocoding api->docs->search->geo coding api->goe coding
+    use forward geo coding
+    call request
+    provide query url and json
+    do error handling
+
+    Call back functions, abstraction, chaining
+    ------------------------------------------
+    Implemented geo code and forecast using call back functions also chained both with error handing.
+    if(error) {
+        return...//it will terminate the execution. So instead of suing else statement use return
+    }
+
+    ES6 Aside: Object Property Shorthand and Destructuring
+    ------------------------------------------------------
+    //Object property shorthand
+        const name = 'imam';
+        const age = 24;
+
+        const user = {
+            // name: name,
+            name,
+            // age: age,
+            age,
+            location: 'Bangalore'
+        }
+
+        console.log(user);
+
+    //object destructuring - To extract object values into individual properties
+        const product = {
+            label: 'notebook',
+            price: 10,
+            stock: 2,
+            salePrice: undefined
+        }
+    //End of writing a lot of code
+    const label = product.label;
+    const label = product.price;
+
+    //To over come this, when we have complex objects with lot of properties use destructuring to store prop value in a individual variable.
+    const {label:newLabel, price, newProp = 'default value'} = product;
+    console.log(newLabel, price, newProp);
+
+    //destructuring inside call back function
+        const transaction = (type, {label, stock})=> {
+            console.log(type, label, stock);
+        }
+
+        transaction('Order', product);
+
+    HTTP Requests Without a Library
+    -------------------------------
+    
