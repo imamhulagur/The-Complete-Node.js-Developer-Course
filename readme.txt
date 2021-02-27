@@ -460,4 +460,33 @@ Section 6: Asynchronous Node.js(Weather App)
 
     HTTP Requests Without a Library
     -------------------------------
-    
+    To to raw requests using http without using node dependencies such 'postman-request'
+    import 'http' modules
+
+    >we need to store and end the http request objects, other wise we wont get any response instead the porgram gets hanged
+        const http = require('http');
+        const url = 'http://api.weatherstack.com/current?access_key=500202960a4016659e6ac115053018b4&query=45, -75&units=f';
+
+        const request = http.request(url, (response)=> {
+            let data = '';
+            response.on('data', (chunk)=> {//data is a event of http which gives back a response
+                data = data + chunk.toString();
+                //console.log(chunk);
+            });
+
+            response.on('end', ()=> {// end event listening
+                // console.log(data);
+                const body = JSON.parse(data);
+                console.log(body);
+            })
+
+            request.on('error', (error)=> {// error event listening
+                console.log('An error '+error);
+            })
+        })
+
+        request.end();
+
+        note: in read world we supposed to use npm core module(axios, postman-request etc) only, since they will make request process much easier.
+        here in http the call back only files single time when things are ready we either have an error or response.
+        on other hand core modules will provide those low level implementation and node comes with bundled with npm. we always use npm modules when we are building oue application.
