@@ -490,3 +490,220 @@ Section 6: Asynchronous Node.js(Weather App)
         note: in read world we supposed to use npm core module(axios, postman-request etc) only, since they will make request process much easier.
         here in http the call back only files single time when things are ready we either have an error or response.
         on other hand core modules will provide those low level implementation and node comes with bundled with npm. we always use npm modules when we are building oue application.
+
+Web Servers using Express
+*************************
+    So for applications which we have created have only been accessible via command line, its not realistic.
+    It would be much better if a user could simple type a URL in the browser to pull up and interact with out applications.
+
+    Express
+    -------
+    This is popular npm library, which makes it really easy to create web servers.
+    >we can serve HTML, CSS, JS, also json data.
+
+    official docs-> expressjs.com
+    ->initialize npm
+    >npm init -y
+    ->install express library
+    >npm i express --save
+
+    The --save option instructed NPM to include the package inside of the dependencies section of your package.
+    
+    npm install saves any specified packages into dependencies by default. Additionally, you can control where and how they get saved with some additional flags:
+
+    -P, --save-prod: Package will appear in your dependencies. This is the default unless -D or -O are present.
+
+    -D, --save-dev: Package will appear in your devDependencies.
+
+    -O, --save-optional: Package will appear in your optionalDependencies.
+
+    --no-save: Prevents saving to dependencies.
+
+    ->create src folder->create app.js file
+    ->create application
+        const express = require('express');
+
+        //create server
+        const app = express();
+
+        //this method will configure what should app do when an someone tries tp request at a specific url, mey be we should sending back html or json.
+        //1st arg-> route parameter, 2nd->call back fun(req, res)
+        app.get('', (req, res)=> {
+            res.send('Home express!');
+        })
+
+        //to start server up app.listen(specify port, callback()), 3000 common development port
+        app.listen(3000, ()=>{
+            console.log('server is up and running on port 3000');
+        })
+
+        //visit localhost:3000 to view the message.
+    if you do any change, again restart your server to apply the changes you have made.
+    or else you can use 'nodemon' to auto sun serve whenever changes are saved.
+
+    add /help route
+        app.listen(3000, ()=>{
+            console.log('server is up and running on port 3000');
+        })
+
+    Serving up HTML and JSON
+    ------------------------
+    Send html
+        app.get('', (req, res)=> {
+            res.send('<h1>Weather</h1>');
+        })
+
+    send JSON
+        app.get('/help', (req, res)=>{
+            res.send({
+                name: 'imam',
+                age: 24
+            });
+        })
+    Serving up Static Assets
+    ------------------------
+        like long html  files we need to write it inside separate
+        >create 'public' named folder.
+            To make express to point a public folder
+                //To provide location of current working directory/folder name
+        console.log(__dirname);
+        //To provide location of current working filename name
+        console.log(__filename);
+        //create server
+
+    explore 'path' core module from node docs.
+        we are using path.join() ->https://nodejs.org/dist/latest-v14.x/docs/api/path.html#path_path_join_paths
+
+        //manipulate and produce required path using path
+        console.log(path.join(__dirname, '../public'))
+        publicDirectoryPath = path.join(__dirname, '../public')
+        //app.use()->the way to customize server
+        //static() take the path we want to serve
+        app.use(express.static(publicDirectoryPath))
+
+    Serving up CSS, JS, Images, and More
+    ------------------------------------
+    relative path
+        <!-- <link rel="stylesheet" href="./CSS/styles.css"> -->
+    absolute path, starts with /(which wil bring you to the root of the hard drives/web server root)
+        <link rel="stylesheet" href="/css/styles.css">
+
+    Dynamic Pages with Templating
+    -----------------------------
+    Till now we have served only static web content, but we will serve dynamic web content.
+    template engine - handle bars
+        To load(use/reuse markup in our app) dynamic web content using web server
+    To achieve this we need 2 npm modules.
+    1.npm handlebars
+    2.npm hbs->integrated inside express.
+        >npm i hbs
+    to tell express which template engine we have installed
+        app.set('view engine', 'hbs');
+            'view engine' should match exactly.
+    specific folder 'views' in rot of project/web server.
+
+    create a file with .hbs extension->similar to html, copy content of index.html tp index.hbs and delete static index.tml
+
+    1.set view engine
+        //to tell express which template engine we have installed
+        app.set('view engine', 'hbs')
+
+    2.specify view folder directory
+        // being rendered res.render()
+        app.set('views', path.join(__dirname, '../views'));
+
+    3.render and send the response using res.render()
+    >res.render()->goes to views folder render .hbs convert it into .html.
+        app.get('',(req, res) => {
+            res.render('index')
+        })
+        here provide file without .hbs extension inside quotes.
+
+    //second argument to render() is a object with values which you want to render in template
+        //index page setup
+        app.get('',(req, res) => {
+            res.render('index', {
+                title: 'Weather App',
+                name: 'Imam Hulagur'
+            })
+        })
+
+    //rendering in hsb template
+    it similar to string interpolation {{prop_name}} in Angular
+        <h1>{{title}}</h1>
+        <p>Create by: {{name}}</p>
+
+    lly setup about and help page
+
+    Customizing the Views Directory
+    ------------------------------
+        //setup custom [ath for views folder
+            const viewPath  = path.join(__dirname, '../templates')
+        // to tell express where to look for views folder which we have renamed
+            app.set('views', viewPath)
+    
+    Advanced Templating(partials with handlebars)
+    ---------------------------------------------
+    allows us to create a little template which is a part of bigger web page.
+    like if you want to create separate template for shared template like headers, footers and nav etc.
+    partials also files have extensions like hbs
+        ->load hbs to configure partials
+    import hbs
+        const  hbs = require('hbs')
+    create a separate folders for both views and partials inside templates folder.
+
+        //setup custom path for partials
+            const partialsPath = path.join(__dirname, '../templates/partials')
+        //register partials using hbs
+            hbs.registerPartials(partialsPath)
+
+        create header.hbs inside partials
+
+        to make use of that template inside other templates {{>partial name}}
+             <h1>{{>header}}</h1>
+
+        *note: only provide file partials file name(without path or .hbs extension)
+
+    Note: even though we haves saves we dont have error in console the server is up and running, still we get error if visit our page
+        its because the 'nodemon' only monitors the changes happened to .html, .js but not .hbs so we need to tweak the nodemon configuration
+        we need to specify using -e(extensions) with comma separated values(no space after the comma)
+    nodemon src/app.js -e js,hbs
+
+
+    404 pages
+    ---------
+    set up new route handler with wildcard character like we do it in angular '**'
+        app.get('*', (req, res)=>{
+            res.send('My 404 page');
+        })
+    In general we need to put this last, since wildcard is like except mentioned routes before if any thing is entered everything is match for wildcard so.
+
+        app.get('/help/*',(req, res)=>{
+            // res.send('Help article not found')
+            res.render('404',{
+                title: '404',
+                name: 'imam hulagur',
+                errorMessage: 'Help article not found'
+            })
+        })
+
+        app.get('*', (req, res)=>{
+            // res.send('My 404 page');
+            res.render('404',{
+                title: '404',
+                name: 'imam hulagur',
+                errorMessage: 'Page not found'
+            })
+        })
+
+    Styling application
+    --------------------
+    /* to make use of 100% of our browsers height */
+    min-height: 10vh;
+
+    /* flex-grow->this allows en element to grow and take as much as space  */
+    /* 1-> to take all the left over space */
+    flex-grow: 1;
+
+    To show Images
+    <link rel="icon" href="/img/weather.png">
