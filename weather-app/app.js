@@ -54,7 +54,7 @@ if(!address) {
 } else{
     // geocode('Boston',(error, data)=>{
     // geocode(address,(error, data)=>{
-    geocode(address,(error, {latitude, longitude, location}={})=>{
+    geocode(address,(error, {latitude, longitude, location} = { })=>{
     
         if(error) {
             return console.log(error);

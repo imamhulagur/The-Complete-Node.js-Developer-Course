@@ -698,12 +698,379 @@ Web Servers using Express
 
     Styling application
     --------------------
-    /* to make use of 100% of our browsers height */
-    min-height: 10vh;
+        /* to make use of 100% of our browsers height */
+        min-height: 10vh;
 
-    /* flex-grow->this allows en element to grow and take as much as space  */
-    /* 1-> to take all the left over space */
-    flex-grow: 1;
+        /* flex-grow->this allows en element to grow and take as much as space  */
+        /* 1-> to take all the left over space */
+        flex-grow: 1;
 
-    To show Images
-    <link rel="icon" href="/img/weather.png">
+        To show Images
+        <link rel="icon" href="/img/weather.png">
+
+Accessing API from Browser (Weather App)/Integration of back end and front end
+*****************************************************************************
+    The Query String
+    ----------------
+        The query string is parsed and provided by express for us in request object
+             console.log(req.query);
+    note: by default express wont provide an option for a request without any query params, we need implement it using some logic.
+        if(!req.query.search) {
+            res.send({
+                error: 'You must provide search term'
+            })
+        }
+    if you get this error->Cannot set headers after they are sent to the client
+    since there only one request or response when we are using http, we cant send two responses. So add 'return' to terminate further execution
+        
+        ?search=car
+        app.get('/products', (req, res)=> {
+            if(!req.query.search) {
+                return res.send({
+                    error: 'You must provide search term'
+                })
+            }
+            console.log(req.query.search);
+            res.send({
+                products: []
+            })
+        })
+
+        ?address=india
+        //implemented for query string demo
+        app.get('/weather', (req, res)=>{
+            if(!req.query.address) {
+                return res.send({
+                    error: 'You must provide address term'
+                })
+            }
+            res.send({
+                forecast : 'It is snowing',
+                location: 'Jammu and kashmir',
+                address: req.query.address
+            });
+        })
+
+    Building a JSON HTTP Endpoint
+    *****************************
+    ->wiring of weather-app with web-server endpoints
+        copy utils folder fo weather-app to src folder of web-server
+    ->install the npm module, since we have not installed here.
+        >npm i postman-request
+    now we can use ou geocode and forecast inside out call back of end point to get exact forecast set back.
+
+    import geocode module
+        const geocode = require('./utils/geocode')
+    import forecast module
+        const forecast = require('./utils/forecast')
+    make use of both in our handlers
+        app.get('/weather', (req, res)=>{
+            if(!req.query.address) {
+                return res.send({
+                    error: 'You must provide address term'
+                })
+            }
+
+            geocode(req.query.address, (error, {latitude, longitude, location})=>{
+                if(error) {
+                    return res.send(
+                        {
+                            // error: error
+                            error//ES6 shorthand
+                        }
+                    )
+                }
+
+                forecast(latitude, longitude, (error, forecastData)=>{
+                    if(error) {
+                        res.send({ error })
+                    }
+
+                    res.send({
+                        forecast: forecastData,
+                        // location: location,
+                        location,
+                        address: req.query.address
+                    })
+
+                })
+
+            })
+        })
+
+        test
+        http://localhost:3000/weather?address=new%20york
+        http://localhost:3000/weather?address=boston
+        you will get real time data now.
+
+     ES6 Aside: Default Function Parameters
+     --------------------------------------
+     when there is no value provided, we can provide default value using =
+     const greeter = (name = 'user', age) => {
+            console.log('Hello '+ name)
+        }
+
+        greeter('imam')
+
+        greeter()
+
+    Browser HTTP Requests with Fetch
+    --------------------------------
+    fetch is not part of JS, it is browser based api i.e we can juse in all modern browsers. But it is not accessible in Node JS.
+        fetch('http://puzzle.mead.io/puzzle')
+        .then((response)=> {
+            response.json()
+            .then((data) => {
+                console.log(data)
+            })
+        })
+
+    Creating a Search Form
+    ----------------------
+      const weatherForm = document.querySelector('form')
+
+        const search = document.querySelector('input')
+
+        weatherForm.addEventListener('submit', (e) =>{
+            const location = search.value
+            e.preventDefault()
+            console.log(location)
+            fetch('http://localhost:3000/weather?address='+location)
+                .then((response) => {
+                    response.json()
+                    .then((data)=> {
+                        if(data.error) {
+                            console.log(data.error)
+                        } else {
+                            console.log(data.location, data.forecast)
+                        }
+                    })
+                })
+        })
+
+    
+Application Deployment (Weather App)/Production ready server
+************************************************************
+    Joining Heroku and GitHub
+    -------------------------
+    Github ->popular software developement platform
+        donwload and create account
+    Heroku->Heroku is a platform as a service (PaaS) that enables developers to build, run, and operate applications entirely in the cloud.
+        download and create account.
+        go to heroku cli->download windows installer->install(set path)
+        open heroku cmd
+        >heroku -v
+        >heroku login
+            press any key and it wil redirect to browser, login there in your cmd line it will show your logged in account
+                Logging in... done
+                Logged in as imamhulagur@gmail.com
+
+    Version Control with Git
+    ------------------------
+    VC - maintains various versions of our application by tracking changes
+    official doc-> git-scm.com
+    download ->http://git-scm.com/download/win
+    read book online->http://git-scm.com/book/en/v2
+    >git --version
+   *note-> The command that we run from should 'web-serve'
+   Create web-server application local git repository
+    >git init
+    >git status
+        create new directory file .gitignore
+            /node_modules
+        >git status
+            now git ignore that folder
+        >git add .
+            to add all
+        >git commit -m "initial commit"
+            double quotes mandatory
+
+    lly create for notes-app
+
+    Setting up SSH Keys
+    -------------------
+    Transferring fo data from GitHub to other 3rd party services like heruko to deploy in a secured by SSH(Secures SHell) keys
+    The shell cmd wont run in normal windows cmd prompt so we need to use git Bash
+
+    open power shell or git bash.
+
+    move to project folder
+        >pwd
+        >cd path
+        Note->while cd if you have folder with space u need to place escape character(\space) to shift
+    >ls -a -l ~/.ssh  
+        ls shows all the files inside directory
+        -a wil show all even hidden files
+        -l list all
+        4th argument is path i.t tilde (~)/..ssh
+        if you dont have any .ssh files u ll get an error, so we need to create .ssh file
+    >ssh-keygen -t rsa -b 4906 -C "Commented by Imam for .ssh "
+        ssh-keygen -t(type) rsa(protocol) -b(bits) 4906 -C(Comment)
+    >enter //directory
+    >enter //not pass phrase
+        key has been create
+    now run >ls -a -l ~/.ssh
+        u will see the generated .ssh key
+    private file->-rw-r--r-- 1 Imam Hulagur 197609 4014 Mar  6 19:17 id_rsa
+    public file->-rw-r--r-- 1 Imam Hulagur 197609  884 Mar  6 19:17 id_rsa.pub
+        we can share this .ssh public to establish secured conn between heruko and github
+    run program
+    make sure our private key is registered
+    >eval $(ssh-agent -s) //-s ->start
+        o/p Agent pid 1248
+        if it returned pid then .ssh is running
+    register the file
+    > ssh-add ~/.ssh/id_rsa (path of file)
+        o/p->Identity added: /c/Users/Imam Hulagur/.ssh/id_rsa (.ssh key generated by imam)
+
+    Pushing Code to GitHub
+    ----------------------
+    initialize git repository
+         >git init
+        if you are not seeing main branch after init, create one and do checkout to main.
+    create repository
+        node3-weather-website-by-imam
+    check wether remote exists or not
+        >git remote -v
+    if not create remote
+        >git remote add origin 'git@github.com:imamhulagur/node3-weather-website-by-imam.git'
+    check created successfully or not
+        >git remote -v
+            o/p->origin  https://github.com/imamhulagur/node3-weather-website-by-imam.git (fetch)
+            origin https://github.com/imamhulagur/node3-weather-website-by-imam.git (push)
+
+    create .ssh in github to send it securely
+        profile->settings->ssh and gpg keys->new ssh key
+        provide name->node-webserver-imam
+        key
+            >cat ~/.ssh/id_rsa.pub
+            grab that key from git bash and paste it into github key field
+        ->add ssh key
+            it say key never been used to communicate github, thats true.
+        Now we will test out by communicating with github.
+        >ssh -T git@github.com
+        confirm identity of server->yes
+        >enter
+            Hi imamhulagur! You've successfully authenticated, but GitHub does not provide shell access.
+    push your code
+        >git push -u origin main
+            The first-time -u option created a persistent upstream tracking branch with your local branch.
+        note : if you getting fast forwards error just force push
+            >git push origin main --force
+
+    Deploying Node.js to Heroku
+    ---------------------------
+    pushing our code to Production
+        For github we need to go to there website do some configuration but The best thing about heroku is 'we can manager our application from terminal'
+        we need to install heroku cmd tool. to create, manage in production environment.
+    setup cmd we need to run using visual studio code
+    first shift to bash cmd to windows cmd
+    setup our ssh pub key for heroku
+    check heroku cmd
+    >heroku -v
+        note: sometimes its will give error even though path set correct to /bin folder, its bcz of visual studio code.
+        so always use windows cmd/powershell/git bash
+
+    >heroku keys:add
+    >yes
+    >upload id_rsa.pub ssh key to heroku
+        $ heroku keys:add
+            Found an SSH public key at C:\Users\Imam Hulagur\.ssh\id_rsa.pub
+            Would you like to upload it to Heroku? [Y/n]: Y
+            Uploading C:\Users\Imam Hulagur\.ssh\id_rsa.pub SSH key... done
+
+
+    create unique application in heroku across application
+    >heroku create weather-application-by-imam
+        https://weather-application-by-imam.herokuapp.com/ 
+        https://git.heroku.com/weather-application-by-imam.git
+
+    We need to tell heroku, how to run our application
+
+    setup key value pai in package.json, the key should be start
+        "scripts": {
+            "start":"node src/app.js"
+        }
+    run from cmd now, to start out application locally, the exact command heroku is going to run to start our application in there server.
+    >npm run start
+        server is up and running on port 3000
+
+    heroku will run our application on its own port which is will be available for us at process.env.PORT variable
+
+    So configure heroku port inside app.js dynamically
+    1.const port = process.env.PORT || 3000;
+
+    2.listen to it
+        app.listen(port, ()=>{
+            // console.log('server is up and running on port 3000')
+            console.log('server is up and running on port '+port)
+        })
+
+    3.at client side public/app.js we need to change
+         // fetch('http://localhost:3000/weather?address='+location)
+            fetch('/weather?address='+location)
+    4.move changes
+        >git status
+        >git add .
+        >git commit -a -m"Setup app for heroku"
+        >git push origin main
+    >git push heroku main(dont use master)
+        https://weather-application-by-imam.herokuapp.com/ deployed to Heroku
+        deployed to ->https://weather-application-by-imam.herokuapp.com/
+
+    New Feature Deployment Workflow
+    -------------------------------
+    run local server, its should up and running http://localhost:3000
+        >nodemon src/app.js -e js, hbs
+
+    Do necessary changes
+    >push to github remote(main)
+        >git add .
+        >git commit -m"About text adde"
+        >git push origin main
+    push to heroku remote (main)
+        >git push heroku main
+
+    Avoiding Global Modules
+    -----------------------
+        register nodemon cmd in package.json
+             "scripts": {
+                "start":"node src/app.js",
+                "dev": "nodemon src/app.js -e js,hbs"
+            }
+        now you can just run in terminal below cmd
+            >npm run dev
+        
+        The problem with nodemon is that, we need to install it globally to make it work.
+        if i gave this project to other, when they try to run this using 'npm run dev' they will get error. because this project technically depends on nodemon!. since we have it as a dependency. version conflicts also cause many issues.
+
+        solution is->uninstall nodemon global and install nodemon as a local dependency.
+
+        uninstall
+            >npm uninstall -g nodemon
+        install it as a local dev dependency
+            The dev dependencies only require while you are developing, not going install in production. So now we avoided the nodemon issue now.
+            >npm i nodemon --save-dev
+
+        locally still we can make use of nodemon
+            >npm run dev
+
+
+Section 10: MongoDB and Promises (Task Manager Application)
+***********************************************************
+    MongoDB and NoSQL Databases
+    ---------------------------
+    www.mongodb.com
+    SQL
+        data stored in table
+        single entry->row/record
+        vertical entry->column
+    NoSQL
+        data stored in collections
+        single entry->document
+        vertical entry->field
+
+    installation
+        https://www.mongodb.com/try/download/community
+        get mongo db or try free->server(community)->download
+        its has 2 files, move unzipped folder to 

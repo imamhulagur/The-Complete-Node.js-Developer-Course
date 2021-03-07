@@ -2,8 +2,14 @@ const express = require('express')
 const path = require('path')
 const  hbs = require('hbs')
 
+const geocode = require('./utils/geocode')
+const forecast = require('./utils/forecast')
+
 //create server
 const app = express()
+
+//heroku port config
+const port = process.env.PORT || 3000;
 
 //To provide location of current working directory/folder name
 console.log(__dirname)
@@ -58,7 +64,7 @@ app.get('/help',(req, res) => {
     res.render('help', {
         title: 'Help',
         name: 'Imam Hulagur',
-        helpText: 'This is helpful text. Please visit nodejs.com for more info'
+        helpText: 'Thanks for visiting. Please visit nodejs.com for more info'
     })
 })
 
@@ -81,11 +87,63 @@ app.get('/help',(req, res) => {
 //     res.send('<h1>About</h1>');
 // })
 
+// app.get('/weather', (req, res)=>{
+//     res.send({
+//         forecast : 'It is snowing',
+//         location: 'Jammu and kashmir'
+//     });
+// })
+
+//implemented for query string demo
 app.get('/weather', (req, res)=>{
+    if(!req.query.address) {
+        return res.send({
+            error: 'You must provide address term'
+        })
+    }
+
+    geocode(req.query.address, (error, {latitude, longitude, location}={})=>{
+        if(error) {
+            return res.send(
+                {
+                    // error: error
+                    error//ES6 shorthand
+                }
+            )
+        }
+
+        forecast(latitude, longitude, (error, forecastData)=>{
+            if(error) {
+                return res.send({ error })
+            }
+
+            res.send({
+                forecast: forecastData,
+                // location: location,
+                location,
+                address: req.query.address
+            })
+
+        })
+
+    })
+    // res.send({
+    //     forecast : 'It is snowing',
+    //     location: 'Jammu and kashmir',
+    //     address: req.query.address
+    // });
+})
+
+app.get('/products', (req, res)=> {
+    if(!req.query.search) {
+        return res.send({
+            error: 'You must provide search term'
+        })
+    }
+    console.log(req.query.search);
     res.send({
-        forecast : 'It is snowing',
-        location: 'Jammu and kashmir'
-    });
+        products: []
+    })
 })
 
 app.get('/help/*',(req, res)=>{
@@ -107,8 +165,10 @@ app.get('*', (req, res)=>{
 })
 
 //to start server up app.listen(specify port, callback()), 3000 common development port
-app.listen(3000, ()=>{
-    console.log('server is up and running on port 3000')
+// app.listen(3000, ()=>{
+app.listen(port, ()=>{
+    // console.log('server is up and running on port 3000')
+    console.log('server is up and running on port '+port)
 })
 
 //visit localhost:3000 to view the message.

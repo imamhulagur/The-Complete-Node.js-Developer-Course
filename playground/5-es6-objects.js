@@ -13,12 +13,12 @@
  console.log(user);
 
 // //  //object destructuring - To extract object values into individual properties
-//  const product = {
-//     label: 'notebook',
-//     price: 10,
-//     stock: 2,
-//     salePrice: undefined
-//  }
+ const product = {
+    label: 'notebook',
+    price: 10,
+    stock: 2,
+    salePrice: undefined
+ }
 // //End of writing a lot of code
 // const label = product.label;
 // const label = product.price;
@@ -27,9 +27,9 @@
 // const {label:newLabel, price, newProp = 'default value'} = product;
 // console.log(newLabel, price, newProp);
 
-// //destructuring inside call back function
-// const transaction = (type, {label, stock})=> {
-//     console.log(type, label, stock);
-// }
+//destructuring inside call back function
+const transaction = (type, {label, stock = 0} = {})=> {
+    console.log(type, label, stock);
+}
 
-// transaction('Order', product);
+transaction('Order', product);
